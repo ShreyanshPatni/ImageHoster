@@ -119,7 +119,7 @@ public class ImageController {
         Image image = imageService.getImage(imageId);
         User user = (User) session.getAttribute("loggeduser");
 
-        if (image.getUser() == user) {
+        if (image.getUser().getId() == user.getId()) {
             String updatedImageData = convertUploadedFileToBase64(file);
             if (!updatedImageData.isEmpty())
                 updatedImage.setImageFile(image.getImageFile());
@@ -132,10 +132,9 @@ public class ImageController {
             updatedImage.setTags(imageTags);
             updatedImage.setDate(new Date());
             imageService.updateImage(updatedImage);
-            return "redirect:/images/" + updatedImage.getTitle();
+            return "redirect:/images/" + updatedImage.getId() + "/" + updatedImage.getTitle();
         }
         else {
-
             String error = "Only the owner of the image can edit the image";
             model.addAttribute("editError", error);
             model.addAttribute("image", image);
