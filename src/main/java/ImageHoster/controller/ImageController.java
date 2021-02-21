@@ -114,26 +114,36 @@ public class ImageController {
     //The method also receives tags parameter which is a string of all the tags separated by a comma using the annotation @RequestParam
     //The method converts the string to a list of all the tags using findOrCreateTags() method and sets the tags attribute of an image as a list of all the tags
     @RequestMapping(value = "/editImage", method = RequestMethod.PUT)
-    public String editImageSubmit(@RequestParam("file") MultipartFile file, @RequestParam("imageId") Integer imageId, @RequestParam("tags") String tags, Image updatedImage, HttpSession session) throws IOException {
+    public String editImageSubmit(@RequestParam("file") MultipartFile file, @RequestParam("imageId") Integer imageId, @RequestParam("tags") String tags, Image updatedImage, HttpSession session, Model model) throws IOException {
 
         Image image = imageService.getImage(imageId);
-        String updatedImageData = convertUploadedFileToBase64(file);
-        List<Tag> imageTags = findOrCreateTags(tags);
+        User user = (User) session.getAttribute("loggeduser");
 
-        if (updatedImageData.isEmpty())
-            updatedImage.setImageFile(image.getImageFile());
+        if (image.getUser() == user) {
+            String updatedImageData = convertUploadedFileToBase64(file);
+            if (!updatedImageData.isEmpty())
+                updatedImage.setImageFile(image.getImageFile());
+            else {
+                updatedImage.setImageFile(updatedImageData);
+            }
+            List<Tag> imageTags = findOrCreateTags(tags);
+            updatedImage.setId(imageId);
+            updatedImage.setUser(user);
+            updatedImage.setTags(imageTags);
+            updatedImage.setDate(new Date());
+            imageService.updateImage(updatedImage);
+            return "redirect:/images/" + updatedImage.getTitle();
+        }
         else {
-            updatedImage.setImageFile(updatedImageData);
+
+            String error = "Only the owner of the image can edit the image";
+            model.addAttribute("editError", error);
+            model.addAttribute("image", image);
+            model.addAttribute("tags",tags);
+            return "images/image";
         }
 
-        updatedImage.setId(imageId);
-        User user = (User) session.getAttribute("loggeduser");
-        updatedImage.setUser(user);
-        updatedImage.setTags(imageTags);
-        updatedImage.setDate(new Date());
 
-        imageService.updateImage(updatedImage);
-        return "redirect:/images/" + updatedImage.getTitle();
     }
 
 
@@ -141,9 +151,20 @@ public class ImageController {
     //The method calls the deleteImage() method in the business logic passing the id of the image to be deleted
     //Looks for a controller method with request mapping of type '/images'
     @RequestMapping(value = "/deleteImage", method = RequestMethod.DELETE)
-    public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId) {
-        imageService.deleteImage(imageId);
-        return "redirect:/images";
+    public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId, HttpSession session, Model model) {
+        Image image = imageService.getImage(imageId);
+        User loggedUser = (User) session.getAttribute("loggeduser");
+        if (image.getUser() == loggedUser) {
+            imageService.deleteImage(imageId);
+            return "redirect:/images";
+        }
+        else {
+            String error = "Only the owner of the image can delete the image";
+            model.addAttribute("deleteError", error);
+            model.addAttribute("image",image);
+            model.addAttribute("tags",image.getTags());
+            return "images/image";
+        }
     }
 
 
