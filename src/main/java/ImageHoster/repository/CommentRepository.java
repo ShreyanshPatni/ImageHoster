@@ -14,6 +14,11 @@ public class CommentRepository {
     @PersistenceUnit(unitName = "imageHoster")
     private EntityManagerFactory emf;
 
+    //The method receives the Comment object to be persisted in the database
+    //Creates an instance of EntityManager
+    //Starts a transaction
+    //The transaction is committed if it is successful
+    //The transaction is rolled back in case of unsuccessful transaction
     public Comment createComment(Comment newComment) {
         EntityManager em = emf.createEntityManager();
         EntityTransaction transaction = em.getTransaction();
@@ -30,6 +35,10 @@ public class CommentRepository {
         return  newComment;
     }
 
+    //The method creates an instance of EntityManager
+    //Executes JPQL query to fetch the comments from the database with corresponding image
+    //Returns all the comments in case the comments are found in the database
+    //otherwise return null
     public List<Comment> getAllCommentsOfImage(Image image) {
         EntityManager em = emf.createEntityManager();
         int imageId = image.getId();
