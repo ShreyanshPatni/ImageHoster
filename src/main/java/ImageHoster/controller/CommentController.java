@@ -30,14 +30,9 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
-    /*@RequestMapping("/images/{id}/{title}/comments")
-    public String createComment(@PathVariable("id") Integer imageId,
-                                @PathVariable("title") String imageTitle) {
-        //Comment newComment = new Comment();
-        return"images/image";
 
-    }*/
-
+    //This method is used to create a comment on an image and then redirect to the same page and displayes all the
+    //comments of that image
     @RequestMapping(value = "/image/{id}/{title}/comments", method = RequestMethod.POST)
     public String createComment (@PathVariable("id") Integer imageId,
                                  @PathVariable("title") String imageTitle,
@@ -55,6 +50,7 @@ public class CommentController {
         commentService.createComment(newComment);
 
         List<Tag> tags = image.getTags();
+        //return all the comments of an image
         List<Comment> comments = commentService.getAllCommentOfImage(image);
         model.addAttribute("image", image);
         model.addAttribute("tags", tags);
@@ -62,6 +58,7 @@ public class CommentController {
         return "redirect:/images/" + image.getId() + "/" + image.getTitle();
     }
 
+    //This method converts the comment to Base64 format
     private String convertCommentToBase64(String comment) throws IOException {
         return Base64.getEncoder().encodeToString(comment.getBytes());
     }
